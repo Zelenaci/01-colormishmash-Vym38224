@@ -2,7 +2,7 @@
 
 from os.path import basename, splitext
 import tkinter as tk
-from tkinter import Scale, HORIZONTAL, Canvas, LEFT, Frame, Entry, S, StringVar
+from tkinter import Scale, HORIZONTAL, Canvas, LEFT, Frame, Entry, S, StringVar, END
 
 # from tkinter import ttk
 
@@ -25,47 +25,92 @@ class Application(tk.Tk):
         self.frameB = Frame(self)
         self.frameB.pack()
 
+        ### R
+        self.varR = StringVar()
+        self.varR.trace("w", self.change)
         self.lbl = tk.Label(self.frameR, text="R:") #nápis co se tam zobrazuje (label)
         self.lbl.pack(side = LEFT, anchor=S) #umístění napísu
-        self.scaleR = Scale(self.frameR, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, command = self.change)
-
+        self.scaleR = Scale(self.frameR, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, variable = self.varR)
+        
         self.scaleR.pack(side = LEFT, anchor=S)
-        self.entryR = Entry(self.frameR, width = 4)
+        self.entryR = Entry(self.frameR, width = 4, textvariable = self.varR)
         self.entryR.pack(side = LEFT, anchor=S)
 
+        ### G
+        self.varG = StringVar()
+        self.varG.trace("w", self.change)
         self.lbl = tk.Label(self.frameG, text="G:")
         self.lbl.pack(side = LEFT, anchor=S)
-        self.scaleG = Scale(self.frameG, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, command = self.change)
-
+        self.scaleG = Scale(self.frameG, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, variable = self.varG)
+        
         self.scaleG.pack(side = LEFT, anchor=S)
-        self.entryG = Entry(self.frameG, width = 4)
+        self.entryG = Entry(self.frameG, width = 4, textvariable = self.varG)
         self.entryG.pack(side = LEFT, anchor=S)
 
+        ### B
+        self.varB = StringVar()
+        self.varB.trace("w", self.change)
         self.lbl = tk.Label(self.frameB, text="B:")
         self.lbl.pack(side = LEFT, anchor=S)
-        self.scaleB = Scale(self.frameB, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, command = self.change)
-      
+        self.scaleB = Scale(self.frameB, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, variable = self.varB)
+        
         self.scaleB.pack(side = LEFT, anchor=S)
-        self.entryB = Entry(self.frameB, width = 4)
+        self.entryB = Entry(self.frameB, width = 4, textvariable = self.varB)
         self.entryB.pack(side = LEFT, anchor=S)
 
+
+        # okýnko barvy
         self.canvasMain = Canvas(self, width = 256, height = 100, background = "#000000")
         self.canvasMain.pack()
+       
 
+        # barva v hex
+        self.entryMain = Entry(self)
+        self.entryMain.pack()
+        self.canvasMain.bind("<Button-1>", self.clickHandler)
 
+        # tlačítka
         self.btnQuit = tk.Button(self, text="Quit", command=self.quit)
         self.btnQuit.pack()
 
         self.btn2 = tk.Button(self, text="Change", command=self.change)
         self.btn2.pack()
 
+        # uložení barviček
+        self.frameMem = Frame(self)
+        self.frameMem.pack()
+        self.canvasMem = []
+
+        for row in range(8):
+            for column in range(15):
+                canvas = Canvas(self.frameMem, width = 50, height = 50, background = "#ffffff")
+                canvas.grid(row = row, column = column)
+                canvas.bind("<Button-1>", self.clickHandler)
+                self.canvasMem.append(canvas)
+
+    def clickHandler(self, event):
+        if self.cget("cursor") != "pencil":
+            self.config(cursor = "pencil")
+            self.color = event.widget.cget("background")
+        else:
+            self.config(cursor = "")
+            event.widget.config(background = self.color)
+        if event.widget is self.canvasMain:
+            self.varR.scaleR.get()
+            self.varG.scaleG.get()
+            self.varB.scaleB.get()
+
     
-    def change(self, event):
+    def change(self, var, index, mode):
         r = self.scaleR.get()
         g = self.scaleG.get()
         b = self.scaleB.get()
-        self.canvasMain.config(background = f"#{r:02x}{g:02x}{b:02x}")
-        print(f"#{r:02x}{g:02x}{b:02x}")
+
+        colorcode  = f"#{r:02x}{g:02x}{b:02x}"
+        self.canvasMain.config(background = colorcode)
+        self.entryMain.delete(0,END)
+        self.entryMain.insert(0, colorcode)
+        
 
     def quit(self, event=None):
         super().quit()
