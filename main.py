@@ -27,7 +27,6 @@ class Application(tk.Tk):
 
         ### R
         self.varR = StringVar()
-        self.varR.trace("w", self.change)
         self.lbl = tk.Label(self.frameR, text="R:") #nápis co se tam zobrazuje (label)
         self.lbl.pack(side = LEFT, anchor=S) #umístění napísu
         self.scaleR = Scale(self.frameR, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, variable = self.varR)
@@ -38,7 +37,6 @@ class Application(tk.Tk):
 
         ### G
         self.varG = StringVar()
-        self.varG.trace("w", self.change)
         self.lbl = tk.Label(self.frameG, text="G:")
         self.lbl.pack(side = LEFT, anchor=S)
         self.scaleG = Scale(self.frameG, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, variable = self.varG)
@@ -49,7 +47,6 @@ class Application(tk.Tk):
 
         ### B
         self.varB = StringVar()
-        self.varB.trace("w", self.change)
         self.lbl = tk.Label(self.frameB, text="B:")
         self.lbl.pack(side = LEFT, anchor=S)
         self.scaleB = Scale(self.frameB, from_ = 0, to = 255, orient = HORIZONTAL, length = 256, variable = self.varB)
@@ -73,20 +70,27 @@ class Application(tk.Tk):
         self.btnQuit = tk.Button(self, text="Quit", command=self.quit)
         self.btnQuit.pack()
 
-        self.btn2 = tk.Button(self, text="Change", command=self.change)
-        self.btn2.pack()
+        #self.btn2 = tk.Button(self, text="Change", command=self.change)
+        #self.btn2.pack()
+
+        self.protocol("WM_DELETE_WINDOW",  self.quit)
 
         # uložení barviček
         self.frameMem = Frame(self)
         self.frameMem.pack()
         self.canvasMem = []
 
-        for row in range(8):
-            for column in range(15):
+        for row in range(3):
+            for column in range(4):
                 canvas = Canvas(self.frameMem, width = 50, height = 50, background = "#ffffff")
                 canvas.grid(row = row, column = column)
                 canvas.bind("<Button-1>", self.clickHandler)
                 self.canvasMem.append(canvas)
+
+        self.varR.trace("w", self.change)
+        self.varG.trace("w", self.change)
+        self.varB.trace("w", self.change)
+
 
     def clickHandler(self, event):
         if self.cget("cursor") != "pencil":
@@ -110,11 +114,42 @@ class Application(tk.Tk):
         self.canvasMain.config(background = colorcode)
         self.entryMain.delete(0,END)
         self.entryMain.insert(0, colorcode)
-        
+
+
+    #uložení do příště
+    
+    def canvasMain2scales(self):
+        color = self.canvasMain.cget("background")
+        print(color)
+        r = int(color[1:3], 16)
+        g = int(color[3:5], 16)
+        b = int(color[5:], 16)
+        self.varR.set(r)
+        self.varG.set(g)
+        self.varB.set(b)
+    
+    
+    def load(self):
+        try:
+            with open("paleta.txt", "r") as f:
+                color = f.readline().strip()
+                self.canvasMain.config(background=color)
+                self.canvasMain2.scales()
+                for canvas in self.canvasMem:
+                    color = f.readline().strip()
+                    canvas.config(background=color)
+        except FileNotFoundError:
+            print("Konfigurační soubor se nepodařilo načíst")
+
 
     def quit(self, event=None):
+        with open ("paleta.txt", "w")  as f:
+            f.write(self.canvasMain.cget("background") + "\n")
+            for canvas in self.canvasMem:
+                f.write(canvas.cget("background") + "\n")
+        print("koneec")
         super().quit()
-
+    
 
 app = Application()
 app.mainloop()
