@@ -90,10 +90,7 @@ class Application(tk.Tk):
         self.varG.trace("w", self.change)
         self.varB.trace("w", self.change)
         self.load()
-        
 
-
-    
 
     
     def change(self, var, index, mode):
